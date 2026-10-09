@@ -109,3 +109,15 @@ body {
 .dark .skeleton { background-image: linear-gradient(90deg, transparent, rgba(255,255,255,.08), transparent); }
 
 .donut-seg { transition: stroke-dasharray .8s ease, stroke-dashoffset .8s ease; }
+
+/* ---- Typing indicator ---- */
+@keyframes typingBlink {
+  0%, 60%, 100% { opacity: .25; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-3px); }
+}
+.typing-dot { animation: typingBlink 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: .15s; }
+.typing-dot:nth-child(3) { animation-delay: .3s; }
+
+.animate-floaty { animation: floaty 5s ease-in-out infinite; }
+.animate-floaty-slow { animation: floaty 7s ease-in-out infinite; }
