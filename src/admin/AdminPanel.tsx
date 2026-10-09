@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Crown, Building2, Power, KeyRound, BadgeCheck, XCircle, ShieldAlert, UserCheck, Users, LayoutDashboard, Wallet, Search } from 'lucide-react';
+import { Crown, Building2, Power, KeyRound, BadgeCheck, XCircle, ShieldAlert, UserCheck, Users, LayoutDashboard, Wallet, Search, Server, RefreshCw, Activity } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api, API_URL } from '../lib/api';
 import { PageHead, Loading } from '../components/Layout';
 import DonutChart from '../components/DonutChart';
+import Sparkline from '../components/Sparkline';
 
-type TabId = 'overview' | 'approvals' | 'clients' | 'payments';
+type TabId = 'overview' | 'approvals' | 'clients' | 'payments' | 'server';
 
 export default function Admin() {
   const { token, demo } = useAuth();
@@ -18,6 +19,8 @@ export default function Admin() {
   const [users, setUsers] = useState<any[]>([]);
   const [backend, setBackend] = useState<{ ok: boolean; ms: number; at: number } | null>(null);
   const [now, setNow] = useState(Date.now());
+  const [latency, setLatency] = useState<number[]>([]);
+  const [pinging, setPinging] = useState(false);
   const [userFilter, setUserFilter] = useState('pending');
   const [clientQuery, setClientQuery] = useState('');
   const [msg, setMsg] = useState('');
@@ -29,10 +32,18 @@ export default function Admin() {
     try {
       const t0 = performance.now();
       const hr = await fetch(`${API_URL}/health`);
-      setBackend({ ok: hr.ok, ms: Math.round(performance.now() - t0), at: Date.now() });
+      const ms = Math.round(performance.now() - t0);
+      setBackend({ ok: hr.ok, ms, at: Date.now() });
+      setLatency((l) => [...l.slice(-19), ms]);
     } catch {
       setBackend({ ok: false, ms: -1, at: Date.now() });
     }
+  }
+
+  async function pingNow() {
+    setPinging(true);
+    await checkBackend();
+    setPinging(false);
   }
 
   async function load() {
@@ -119,6 +130,7 @@ export default function Admin() {
     { id: 'approvals', label: 'Approvals', icon: Users, badge: pendingUsers.length, badgeTone: 'bg-amber-500 text-white' },
     { id: 'clients', label: 'Clients', icon: Building2, badge: wss.length, badgeTone: 'bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-200' },
     { id: 'payments', label: 'Payments', icon: Wallet, badge: claims.length, badgeTone: 'bg-emerald-500 text-white' },
+    { id: 'server', label: 'Server', icon: Server },
   ];
 
   const stats = [
@@ -159,13 +171,6 @@ export default function Admin() {
       <div key={tab} className="animate-enter">
         {tab === 'overview' && (
           <div className="space-y-4">
-            <div className={`flex items-center gap-2 rounded-2xl border p-3 text-sm ${backend?.ok ? 'border-emerald-300/60 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-red-300/60 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200'}`}>
-              <span className="relative flex h-2.5 w-2.5">
-                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
-              </span>
-              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · live · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></> : <><b>Backend unreachable from browser</b><span className="text-xs opacity-80">· server ON thakle Render deploy + FRONTEND_URL (CORS) check koro · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></>) : 'Checking backend…'}
-            </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               {stats.map((s) => (
                 <div key={s.label} className="card overflow-hidden p-0">
@@ -309,6 +314,72 @@ export default function Admin() {
                 </div>
               ))}
               {!claims.length && <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">No pending claims. Verifying auto-activates the package.</div>}
+            </div>
+          </div>
+        )}
+
+        {tab === 'server' && (
+          <div className="space-y-4">
+            <div className={`relative overflow-hidden rounded-3xl p-6 text-white shadow-xl md:p-8 ${backend?.ok === false ? 'shadow-red-500/25' : 'shadow-emerald-500/25'}`} style={{ backgroundImage: backend?.ok === false ? 'linear-gradient(130deg,#991b1b 0%,#dc2626 60%,#f59e0b 125%)' : 'linear-gradient(130deg,#065f46 0%,#059669 55%,#0ea5e9 125%)' }}>
+              <div className="orb right-[-40px] top-[-60px] h-56 w-56 bg-white/25" />
+              <div className="orb bottom-[-80px] left-[30%] h-48 w-48 bg-white/15" />
+              <div className="relative flex flex-wrap items-center gap-5">
+                <span className="relative flex h-20 w-20 shrink-0 items-center justify-center">
+                  <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-30 ${backend?.ok === false ? 'bg-red-300' : 'bg-emerald-200'}`} />
+                  <span className="absolute inline-flex h-16 w-16 animate-ping rounded-full bg-white/20" style={{ animationDelay: '.6s' }} />
+                  <span className="relative flex h-14 w-14 items-center justify-center rounded-full bg-white/20 backdrop-blur">
+                    <Server size={26} />
+                  </span>
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-xs font-bold uppercase tracking-widest text-white/70">Backend status · live</div>
+                  <div className="mt-0.5 text-3xl font-black tracking-tight">
+                    {!backend ? 'Checking…' : backend.ok ? 'ONLINE' : 'UNREACHABLE'}
+                  </div>
+                  <div className="mt-1 text-sm text-white/80">
+                    {backend?.ok
+                      ? <>Response <b className="tabular-nums">{backend.ms}ms</b> · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago · auto-refresh every 30s</>
+                      : backend ? 'Server ON thakleo browser pachche na — Render deploy + FRONTEND_URL (CORS) check koro.'
+                      : 'Pinging server…'}
+                  </div>
+                </div>
+                <button onClick={pingNow} disabled={pinging} className="rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-emerald-800 shadow transition hover:brightness-95 disabled:opacity-60">
+                  <span className="flex items-center gap-1.5"><RefreshCw size={14} className={pinging ? 'animate-spin' : ''} /> {pinging ? 'Pinging…' : 'Ping now'}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="card p-5">
+                <div className="flex items-center gap-2 text-sm font-bold"><Activity size={16} /> Response time history</div>
+                <div className="mt-3">
+                  {latency.length > 1 ? (
+                    <Sparkline data={latency} id="srv-lat" width={260} height={56} stroke={backend?.ok === false ? '#ef4444' : '#10b981'} />
+                  ) : (
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Collecting pings… keep this tab open.</div>
+                  )}
+                </div>
+                <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  {latency.length ? <>Last {latency.length} pings · avg <b className="tabular-nums">{Math.round(latency.reduce((a, b) => a + b, 0) / latency.length)}ms</b></> : '—'}
+                </div>
+              </div>
+              <div className="card p-5">
+                <div className="text-sm font-bold">Connection details</div>
+                <div className="mt-3 space-y-2 text-xs">
+                  <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
+                    <span className="text-slate-500 dark:text-slate-400">Backend URL</span>
+                    <span className="font-mono font-semibold">{API_URL.replace('https://', '')}</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
+                    <span className="text-slate-500 dark:text-slate-400">Keep-alive</span>
+                    <span className="font-semibold text-emerald-600">GitHub Action · every 5 min</span>
+                  </div>
+                  <div className="flex items-center justify-between rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-800/60">
+                    <span className="text-slate-500 dark:text-slate-400">Panel monitor</span>
+                    <span className="font-semibold">every 30s while open</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
