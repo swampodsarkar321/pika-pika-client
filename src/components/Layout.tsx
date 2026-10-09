@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { BRAND } from '../lib/brand';
+import { demoToggleAllowed } from '../lib/firebase';
 import { API_URL, api } from '../lib/api';
 import CommandPalette from './CommandPalette';
 import PageLoader from './PageLoader';
@@ -279,7 +280,7 @@ export function Layout({ children }: { children: ReactNode }) {
           <button className="btn-ghost !px-2.5 lg:hidden" onClick={() => setOpen(!open)} aria-label="Menu">
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
-          <ModeBadge />
+          {demoToggleAllowed && <ModeBadge />}
           <PlanBadge />
           <button onClick={() => setPalette(true)} className="btn-ghost ml-1 hidden !py-2 text-xs text-slate-400 md:inline-flex">
             <Search size={14} /> Search or command… <kbd className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold dark:bg-slate-800">Ctrl K</kbd>

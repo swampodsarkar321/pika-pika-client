@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Loader2, Lock, Mail, Check, ShieldCheck, Inbox, User, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { BRAND } from '../lib/brand';
+import { demoToggleAllowed } from '../lib/firebase';
 
 const BENEFITS = [
   { title: 'AI Inbox', sub: 'Every message answered in seconds, in Bangla and English.' },
@@ -183,10 +184,14 @@ export default function Login() {
           {busy ? <><Loader2 size={15} className="animate-spin" /> Signing in…</> : 'Sign in'}
         </button>
       </form>
-      <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400"><span className="h-px flex-1 bg-slate-200" /> or <span className="h-px flex-1 bg-slate-200" /></div>
-      <button className="btn-ghost w-full !border-slate-300 !bg-white text-[13px]" onClick={() => { setDemo(!demo); nav('/'); }}>
-        {demo ? 'Exit demo preview' : 'Explore the live demo'}
-      </button>
+      {demoToggleAllowed && (
+        <>
+          <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400"><span className="h-px flex-1 bg-slate-200" /> or <span className="h-px flex-1 bg-slate-200" /></div>
+          <button className="btn-ghost w-full !border-slate-300 !bg-white text-[13px]" onClick={() => { setDemo(!demo); nav('/'); }}>
+            {demo ? 'Exit demo preview' : 'Explore the live demo'}
+          </button>
+        </>
+      )}
       <p className="mt-5 text-center text-[13px] text-slate-500">
         New here? <Link to="/register" className="font-semibold text-indigo-600 hover:underline">Create an account</Link>
       </p>

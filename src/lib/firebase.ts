@@ -21,6 +21,10 @@ if (firebaseConfigured) {
 export { app, auth };
 export const DEMO_DEFAULT = (import.meta.env.VITE_DEMO_MODE ?? 'true') !== 'false';
 
+/** Demo toggle is dev-only (or when VITE_ALLOW_DEMO=true). Production stays live-only. */
+export const demoToggleAllowed =
+  Boolean(import.meta.env.DEV) || (import.meta.env.VITE_ALLOW_DEMO ?? '') === 'true';
+
 /** Fresh ID token straight from the Firebase session (bypasses stale React state). */
 export async function getFreshToken(force = true): Promise<string | null> {
   try {

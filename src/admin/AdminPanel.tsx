@@ -151,7 +151,7 @@ export default function Admin() {
           <div className="space-y-4">
             <div className={`flex items-center gap-2 rounded-2xl border p-3 text-sm ${backend?.ok ? 'border-emerald-300/60 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-red-300/60 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200'}`}>
               <span className={`h-2.5 w-2.5 rounded-full ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
-              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · auto keep-alive active (ping / 5 min)</span></> : <><b>Backend down / sleeping</b><span className="text-xs opacity-80">· prothom request e 30-60s lagte pare</span></>) : 'Checking backend…'}
+              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · auto keep-alive active (ping / 5 min)</span></> : <><b>Backend down / sleeping</b><span className="text-xs opacity-80">· first request may take 30-60s to wake up</span></>) : 'Checking backend…'}
             </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               {stats.map((s) => (
@@ -192,7 +192,7 @@ export default function Admin() {
                 ))}
               </span>
             </div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Approve korlei user full client panel (workspace, Pages, Bot) use korte parbe.</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Approving unlocks the full client panel (workspace, Pages, Bot) for the user.</p>
             <div className="mt-3 space-y-2">
               {shownUsers.map((u: any) => (
                 <div key={u.uid} className={`flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2.5 text-xs ${u.approved ? 'border-slate-100 dark:border-slate-800' : 'border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20'}`}>
@@ -212,7 +212,7 @@ export default function Admin() {
                   </span>
                 </div>
               ))}
-              {!shownUsers.length && <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">Kono user nai ei filter e.</div>}
+              {!shownUsers.length && <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">No users match this filter.</div>}
             </div>
           </div>
         )}
@@ -271,7 +271,7 @@ export default function Admin() {
                   <div className="mt-1 font-mono text-[10px] text-slate-400 dark:text-slate-500">{w.id} · {w.pages?.length ?? 0} pages · {w.members ?? 0} members</div>
                 </div>
               ))}
-              {!shownClients.length && <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">{wss.length ? 'Search e kichu mileni.' : 'No workspaces yet.'}</div>}
+              {!shownClients.length && <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">{wss.length ? 'No matches for this search.' : 'No workspaces yet.'}</div>}
             </div>
           </div>
         )}
@@ -279,7 +279,7 @@ export default function Admin() {
         {tab === 'payments' && (
           <div className="card p-5">
             <div className="flex items-center gap-2 text-sm font-bold">💰 Payment claims <span className="badge bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-200">pending: {claims.length}</span></div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Verify korle package auto-active hoy.</p>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">Verifying auto-activates the package.</p>
             <div className="mt-3 space-y-2">
               {claims.map((c: any) => (
                 <div key={c.key} className="rounded-xl border border-amber-200 bg-amber-50/60 p-3 text-xs dark:border-amber-900 dark:bg-amber-950/20">
@@ -295,7 +295,7 @@ export default function Admin() {
                   </div>
                 </div>
               ))}
-              {!claims.length && <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">Kono pending claim nai. Verify korle package auto-active hoy.</div>}
+              {!claims.length && <div className="rounded-xl border border-dashed border-slate-200 p-6 text-center text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">No pending claims. Verifying auto-activates the package.</div>}
             </div>
           </div>
         )}
