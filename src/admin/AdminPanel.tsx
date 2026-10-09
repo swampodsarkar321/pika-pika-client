@@ -164,7 +164,7 @@ export default function Admin() {
                 <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
                 <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
               </span>
-              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · live · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></> : <><b>Backend down / sleeping</b><span className="text-xs opacity-80">· first request may take 30-60s to wake up · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></>) : 'Checking backend…'}
+              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · live · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></> : <><b>Backend unreachable from browser</b><span className="text-xs opacity-80">· server ON thakle Render deploy + FRONTEND_URL (CORS) check koro · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></>) : 'Checking backend…'}
             </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               {stats.map((s) => (
