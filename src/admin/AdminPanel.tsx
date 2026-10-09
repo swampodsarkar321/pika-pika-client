@@ -339,7 +339,7 @@ export default function Admin() {
                   <div className="mt-1 text-sm text-white/80">
                     {backend?.ok
                       ? <>Response <b className="tabular-nums">{backend.ms}ms</b> · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago · auto-refresh every 30s</>
-                      : backend ? 'Server ON thakleo browser pachche na — Render deploy + FRONTEND_URL (CORS) check koro.'
+                      : backend ? 'Server is ON but the browser cannot reach it — check the Render deploy and FRONTEND_URL (CORS).'
                       : 'Pinging server…'}
                   </div>
                 </div>

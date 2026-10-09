@@ -98,7 +98,7 @@ export default function Billing() {
       {!demo && activePkg && (
         <div className="mb-3 flex items-center gap-2 rounded-2xl border border-emerald-300/60 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
           <Crown size={16} className="shrink-0 text-emerald-600" />
-          <span>Active plan: <b>{PLANS.find((p) => p.id === activePkg)?.name ?? activePkg}</b> — nicher list e sudhu ei plan er benefit active.</span>
+          <span>Active plan: <b>{PLANS.find((p) => p.id === activePkg)?.name ?? activePkg}</b> — only this plan's benefits are active below.</span>
         </div>
       )}
       <div className="grid gap-3 md:grid-cols-3">

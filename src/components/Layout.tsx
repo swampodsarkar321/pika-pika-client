@@ -159,7 +159,7 @@ export function PendingBanner() {
       <Clock size={17} className="mt-0.5 shrink-0" />
       <div>
         <div className="font-bold">Account pending approval{profile?.displayName ? ` — ${profile.displayName}` : ''}</div>
-        <div className="mt-0.5 text-xs opacity-90">Super-admin approve korle workspace create, Pages connect o Bot full unlock hobe. Ekhon dashboard limited view te dekhte paro.</div>
+        <div className="mt-0.5 text-xs opacity-90">Once a super-admin approves, workspace creation, Pages connect and Bot unlock fully. For now the dashboard is in limited view.</div>
       </div>
     </div>
   );

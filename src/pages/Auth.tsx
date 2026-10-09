@@ -212,10 +212,10 @@ export function Register() {
   return (
     <AuthShell>
       <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Create account</h1>
-      <p className="mt-1 text-sm text-slate-500">Approval-er por full client panel unlock hobe.</p>
+      <p className="mt-1 text-sm text-slate-500">The full client panel unlocks after super-admin approval.</p>
       {done ? (
         <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
-          <span className="font-bold">Account created.</span> Approval pending — approve hole Pages, Bot o workspace full use korte parbe.
+          <span className="font-bold">Account created.</span> Approval is pending — Pages, Bot and workspace unlock fully once approved.
           <button className="btn-primary mt-3 w-full justify-center" onClick={() => nav('/')}>Go to dashboard →</button>
         </div>
       ) : (
