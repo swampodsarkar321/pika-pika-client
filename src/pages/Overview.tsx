@@ -141,7 +141,7 @@ export default function Overview() {
             <div>
               <div className="flex items-center gap-1.5">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg text-white" style={{ backgroundImage: s.grad }}><s.icon size={14} /></span>
-                <span className="text-xs font-medium text-slate-500">{s.label}</span>
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400">{s.label}</span>
               </div>
               <div className="mt-1.5 text-3xl font-black tracking-tight"><CountUp value={s.value} /></div>
             </div>
@@ -150,9 +150,9 @@ export default function Overview() {
         ))}
       </div>
 
-      {/* Bottom bento */}
-      <div className="grid gap-3 lg:grid-cols-[1fr_1fr_320px]">
-        <div className="card animate-enter stagger-3 p-5">
+      {/* Bottom bento — mobile stacks, Quick actions stays last */}
+      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-[1fr_1fr_320px]">
+        <div className="card animate-enter stagger-3 min-h-[260px] p-5">
           <div className="text-sm font-bold">Conversation status</div>
           <div className="mt-2">
             <DonutChart
@@ -166,23 +166,31 @@ export default function Overview() {
             />
           </div>
         </div>
-        <div className="card animate-enter stagger-4 p-5">
+        <div className="card animate-enter stagger-4 flex min-h-[260px] flex-col p-5">
           <div className="flex items-center justify-between">
             <div className="text-sm font-bold">Live activity</div>
-            <Link to="/inbox" className="flex items-center gap-1 text-xs font-semibold text-indigo-600">Inbox <ArrowRight size={13} /></Link>
+            <Link to="/inbox" className="flex items-center gap-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">Inbox <ArrowRight size={13} /></Link>
           </div>
-          <div className="mt-3 space-y-2.5">
+          <div className="mt-3 flex-1 space-y-2.5">
             {feed.map((f, i) => (
               <Link key={i} to={f.to} className="flex items-start gap-2.5 rounded-xl p-1.5 transition hover:bg-slate-50 dark:hover:bg-slate-800">
                 <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl text-white" style={{ background: f.color }}><f.icon size={15} /></span>
-                <span className="min-w-0 flex-1 truncate text-xs font-medium">{f.text}</span>
-                <span className="shrink-0 text-[10px] text-slate-400">{ago(f.time)}</span>
+                <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-600 dark:text-slate-300">{f.text}</span>
+                <span className="shrink-0 text-[10px] text-slate-400 dark:text-slate-500">{ago(f.time)}</span>
               </Link>
             ))}
-            {!feed.length && <div className="text-xs text-slate-500">Nothing yet — new orders and messages will stream here.</div>}
+            {!feed.length && (
+              <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-dashed border-slate-200 text-center dark:border-slate-700">
+                <div className="text-xs font-semibold">Nothing yet</div>
+                <div className="mt-1 max-w-[220px] text-[11px] text-slate-500 dark:text-slate-400">New orders and messages will stream here.</div>
+              </div>
+            )}
           </div>
+          <Link to="/inbox" className="mt-3 flex items-center justify-center gap-1 rounded-xl bg-slate-100 py-2 text-xs font-bold text-slate-600 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700">
+            View all activity <ArrowRight size={13} />
+          </Link>
         </div>
-        <div className="card animate-enter stagger-5 bg-gradient-to-b from-indigo-600 to-violet-700 !border-0 p-5 text-white">
+        <div className="card animate-enter stagger-5 bg-gradient-to-b from-indigo-600 to-violet-700 !border-0 p-5 text-white md:col-span-2 lg:col-span-1">
           <div className="text-sm font-bold">Quick actions</div>
           <div className="mt-3 grid gap-2 text-xs font-semibold">
             <Link to="/bot" className="flex items-center gap-2 rounded-xl bg-white/15 p-2.5 backdrop-blur transition hover:bg-white/25"><Bot size={15} /> Test the bot</Link>

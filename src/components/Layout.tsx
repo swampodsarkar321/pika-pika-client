@@ -83,20 +83,35 @@ export function NotifyBell() {
   );
 }
 
-const links = [
-  { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
-  { to: '/pages', label: 'Facebook Pages', icon: Facebook },
-  { to: '/inbox', label: 'Inbox', icon: Inbox },
-  { to: '/orders', label: 'Orders', icon: ShoppingBag },
-  { to: '/broadcast', label: 'Broadcast', icon: Megaphone },
-  { to: '/training', label: 'AI Training', icon: GraduationCap },
-  { to: '/bot', label: 'Bot Settings', icon: Settings },
-  { to: '/customers', label: 'Customers', icon: Users },
-  { to: '/analytics', label: 'Analytics', icon: BarChart3 },
-  { to: '/team', label: 'Team & Access', icon: ShieldCheck },
-  { to: '/billing', label: 'Billing', icon: CreditCard },
-  { to: '/simulator', label: 'Simulator', icon: FlaskConical },
-  { to: '/account', label: 'Account', icon: UserCog },
+const navGroups = [
+  {
+    label: 'Main',
+    links: [
+      { to: '/', label: 'Overview', icon: LayoutDashboard, end: true },
+      { to: '/inbox', label: 'Inbox', icon: Inbox },
+      { to: '/pages', label: 'Facebook Pages', icon: Facebook },
+      { to: '/orders', label: 'Orders', icon: ShoppingBag },
+    ],
+  },
+  {
+    label: 'Manage',
+    links: [
+      { to: '/broadcast', label: 'Broadcast', icon: Megaphone },
+      { to: '/training', label: 'AI Training', icon: GraduationCap },
+      { to: '/bot', label: 'Bot Settings', icon: Settings },
+      { to: '/customers', label: 'Customers', icon: Users },
+      { to: '/analytics', label: 'Analytics', icon: BarChart3 },
+    ],
+  },
+  {
+    label: 'System',
+    links: [
+      { to: '/team', label: 'Team & Access', icon: ShieldCheck },
+      { to: '/billing', label: 'Billing', icon: CreditCard },
+      { to: '/simulator', label: 'Simulator', icon: FlaskConical },
+      { to: '/account', label: 'Account', icon: UserCog },
+    ],
+  },
 ];
 
 export function ModeBadge() {
@@ -145,23 +160,30 @@ function Sidebar({ onNav }: { onNav?: () => void }) {
           <div className="text-[11px] text-white/80">{BRAND.tagline}</div>
         </div>
       </div>
-      {links.map((l) => (
-        <NavLink
-          key={l.to}
-          to={l.to}
-          end={l.end}
-          onClick={onNav}
-          className={({ isActive }) => `navlink ${isActive ? 'navlink-active' : 'navlink-idle'}`}
-        >
-          <l.icon size={18} /> {l.label}
-        </NavLink>
+      {navGroups.map((g) => (
+        <div key={g.label} className="mt-1 first:mt-0">
+          <div className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">{g.label}</div>
+          <div className="space-y-0.5">
+            {g.links.map((l) => (
+              <NavLink
+                key={l.to}
+                to={l.to}
+                end={(l as any).end}
+                onClick={onNav}
+                className={({ isActive }) => `navlink ${isActive ? 'navlink-active' : 'navlink-idle'}`}
+              >
+                <l.icon size={18} /> {l.label}
+              </NavLink>
+            ))}
+          </div>
+        </div>
       ))}
       {isAdmin && (
         <NavLink to="/admin" onClick={onNav} className={({ isActive }) => `navlink ${isActive ? 'navlink-active' : 'navlink-idle'} !mt-1 border border-amber-300/60`}>
           <Crown size={18} className="text-amber-500" /> Super Admin
         </NavLink>
       )}
-      <div className="mt-auto border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-800">
+      <div className="mt-auto border-t border-slate-200 pt-3 text-xs text-slate-500 dark:border-slate-800 dark:text-slate-400">
         <div className="truncate px-2">{user?.email ?? 'Not signed in'}</div>
         {user && (
           <button
@@ -247,7 +269,7 @@ export function PageHead({ title, sub, actions }: { title: string; sub?: string;
       </div>
       <div>
         <h1 className="text-xl font-black tracking-tight md:text-2xl">{title}</h1>
-        {sub && <p className="mt-0.5 text-sm text-slate-500">{sub}</p>}
+        {sub && <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">{sub}</p>}
       </div>
       {actions && <div className="ml-auto flex gap-2">{actions}</div>}
     </div>
@@ -261,7 +283,7 @@ export function Empty({ title, sub, icon }: { title: string; sub?: string; icon?
       <div className="relative">
         {icon && <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 text-white shadow-lg shadow-indigo-500/30">{icon}</div>}
         <div className="text-sm font-bold">{title}</div>
-        {sub && <div className="mx-auto mt-1 max-w-sm text-sm text-slate-500">{sub}</div>}
+        {sub && <div className="mx-auto mt-1 max-w-sm text-sm text-slate-500 dark:text-slate-400">{sub}</div>}
       </div>
     </div>
   );
