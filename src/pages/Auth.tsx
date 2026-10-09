@@ -1,73 +1,87 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Bot, Eye, EyeOff, Loader2, Lock, Mail, Sparkles, CheckCheck, Zap, Globe } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, Mail, Check, ShieldCheck, Inbox, User, Clock } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { BRAND } from '../lib/brand';
 
-/** Live product mock — a Messenger thread answering itself. */
-function ChatMock() {
+const BENEFITS = [
+  { title: 'AI Inbox', sub: 'Every message answered in seconds, in Bangla and English.' },
+  { title: 'COD orders captured', sub: 'Name, phone and address collected automatically.' },
+  { title: 'Human handover', sub: 'Tricky cases route to your team with full context.' },
+];
+
+const THREADS = [
+  { name: 'Rahim Uddin', text: 'Delivery charge koto?', tag: 'AI replied', tone: 'bg-emerald-50 text-emerald-700 ring-emerald-200', time: '2m' },
+  { name: 'Sara Ahmed', text: 'Order ORD-261009-AB12 confirmed', tag: 'Order', tone: 'bg-indigo-50 text-indigo-700 ring-indigo-200', time: '18m' },
+  { name: 'Tanvir Hasan', text: 'Refund issue — needs a human', tag: 'Handover', tone: 'bg-amber-50 text-amber-800 ring-amber-200', time: '41m' },
+];
+
+/** Restrained product preview — a sober inbox snapshot, not a toy chat. */
+function InboxPreview() {
   return (
-    <div className="animate-floaty relative rounded-3xl border border-white/20 bg-white/10 p-4 shadow-2xl backdrop-blur-xl">
-      <div className="flex items-center gap-2.5 border-b border-white/10 pb-3">
-        <span className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 text-lg">🛍️</span>
-        <div>
-          <div className="text-sm font-bold text-white">Demo Shop</div>
-          <div className="flex items-center gap-1 text-[11px] text-emerald-300"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> Online — replies instantly</div>
-        </div>
-        <span className="ml-auto rounded-full bg-white/15 px-2 py-1 text-[10px] font-bold text-white">AI</span>
+    <div className="overflow-hidden rounded-xl border border-white/10 bg-white/[.07] backdrop-blur">
+      <div className="flex items-center gap-2 border-b border-white/10 px-4 py-2.5">
+        <Inbox size={14} className="text-slate-300" />
+        <span className="text-xs font-semibold text-white">Live inbox</span>
+        <span className="ml-auto flex items-center gap-1 text-[10px] text-emerald-300"><span className="h-1.5 w-1.5 rounded-full bg-emerald-400" /> AI on duty</span>
       </div>
-      <div className="space-y-2.5 pt-3">
-        <div className="animate-enter stagger-1 max-w-[85%] rounded-2xl rounded-tl-md bg-white px-3 py-2 text-xs text-slate-800 shadow">Delivery charge koto? 🚚</div>
-        <div className="animate-enter stagger-2 ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-2 text-xs text-white shadow">
-          Dhaka te ৳60, baire ৳120. Order korte chaile janaben! ✨
+      {THREADS.map((t) => (
+        <div key={t.name} className="flex items-center gap-2.5 border-b border-white/5 px-4 py-2.5 last:border-0">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-600 text-[11px] font-bold text-white">{t.name.slice(0, 1)}</span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-xs font-semibold text-white">{t.name}</span>
+            <span className="block truncate text-[11px] text-slate-400">{t.text}</span>
+          </span>
+          <span className={`hidden shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 sm:block ${t.tone}`}>{t.tag}</span>
+          <span className="shrink-0 text-[10px] text-slate-500">{t.time}</span>
         </div>
-        <div className="animate-enter stagger-3 max-w-[85%] rounded-2xl rounded-tl-md bg-white px-3 py-2 text-xs text-slate-800 shadow">Order korte chai — 2 pcs cake</div>
-        <div className="animate-enter stagger-4 ml-auto flex items-center gap-1.5 rounded-2xl rounded-tr-md bg-white/20 px-3 py-2.5 backdrop-blur">
-          <span className="typing-dot h-1.5 w-1.5 rounded-full bg-white" />
-          <span className="typing-dot h-1.5 w-1.5 rounded-full bg-white" />
-          <span className="typing-dot h-1.5 w-1.5 rounded-full bg-white" />
-        </div>
-        <div className="animate-enter stagger-5 ml-auto max-w-[85%] rounded-2xl rounded-tr-md bg-gradient-to-r from-emerald-500 to-teal-500 px-3 py-2 text-xs text-white shadow">
-          Done! ✅ Order ORD-261009-AB12 — 2 × Chocolate Cake. Phone number ta diben?
-        </div>
-      </div>
-      <div className="animate-floaty-slow absolute -right-3 -top-3 flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5 text-[10px] font-bold text-indigo-700 shadow-xl">
-        <Zap size={11} className="text-amber-500" /> reply in ~2s
-      </div>
-      <div className="animate-floaty-slow absolute -bottom-3 -left-3 flex items-center gap-1 rounded-full bg-white px-2.5 py-1.5 text-[10px] font-bold text-emerald-700 shadow-xl" style={{ animationDelay: '1.2s' }}>
-        <CheckCheck size={11} /> COD order collected
-      </div>
+      ))}
     </div>
   );
 }
 
 function Showcase() {
   return (
-    <div className="relative hidden flex-col justify-between overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-white/10 to-transparent p-7 lg:flex">
+    <div className="relative hidden flex-col justify-center overflow-hidden bg-slate-950 p-10 lg:flex">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.35]"
+        style={{ backgroundImage: 'radial-gradient(circle at 85% 15%, rgba(99,102,241,.45), transparent 55%), radial-gradient(circle at 10% 90%, rgba(16,185,129,.22), transparent 50%)' }}
+      />
       <div className="relative">
         <div className="flex items-center gap-2.5">
           {BRAND.logoUrl ? (
-            <img src={BRAND.logoUrl} alt={BRAND.name} className="h-11 w-11 rounded-2xl bg-white/15 object-cover shadow-lg" />
+            <img src={BRAND.logoUrl} alt={BRAND.name} className="h-10 w-10 rounded-xl object-cover" />
           ) : (
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white/15 text-xl font-black text-white backdrop-blur">{BRAND.initial}</div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-600 text-lg font-black text-white">{BRAND.initial}</div>
           )}
           <div>
             <div className="font-bold text-white">{BRAND.name}</div>
-            <div className="text-[11px] text-white/60">{BRAND.tagline}</div>
+            <div className="text-[11px] text-slate-400">{BRAND.tagline}</div>
           </div>
         </div>
-        <h2 className="mt-7 text-[32px] font-black leading-[1.1] tracking-tight text-white">
-          Your Page replies<br /><span className="bg-gradient-to-r from-amber-300 via-fuchsia-300 to-indigo-300 bg-clip-text text-transparent">while you sleep.</span>
+        <h2 className="mt-8 max-w-md text-[34px] font-extrabold leading-[1.15] tracking-tight text-white">
+          Customer messaging, on autopilot.
         </h2>
-        <p className="mt-2 max-w-sm text-sm text-white/65">AI chatbot for Facebook Pages — Bangla, Banglish & English, 24/7.</p>
-      </div>
-      <div className="relative mx-auto mt-6 w-full max-w-sm">
-        <ChatMock />
-      </div>
-      <div className="relative mt-6 flex items-center gap-4 border-t border-white/10 pt-4 text-[11px] text-white/60">
-        <span className="flex items-center gap-1"><Bot size={13} className="text-emerald-300" /> 24/7 auto-reply</span>
-        <span className="flex items-center gap-1"><Globe size={13} className="text-indigo-300" /> বাং / Eng</span>
-        <span className="ml-auto flex items-center gap-1"><Sparkles size={13} className="text-amber-300" /> No code needed</span>
+        <p className="mt-3 max-w-md text-[15px] leading-relaxed text-slate-400">
+          Connect your Facebook Page and let AI handle replies, orders and follow-ups — your team steps in only when it matters.
+        </p>
+        <ul className="mt-7 space-y-4">
+          {BENEFITS.map((b) => (
+            <li key={b.title} className="flex gap-3">
+              <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400 ring-1 ring-emerald-500/30"><Check size={13} strokeWidth={3} /></span>
+              <span>
+                <span className="block text-sm font-semibold text-white">{b.title}</span>
+                <span className="block text-[13px] text-slate-400">{b.sub}</span>
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-8 max-w-md"><InboxPreview /></div>
+        <div className="mt-7 flex gap-6 border-t border-white/10 pt-5 text-slate-400">
+          {[['24/7', 'coverage'], ['~2s', 'median reply'], ['বাং + EN', 'languages']].map(([v, l]) => (
+            <span key={l}><span className="block text-lg font-extrabold text-white">{v}</span><span className="text-[11px] uppercase tracking-wide">{l}</span></span>
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -75,29 +89,48 @@ function Showcase() {
 
 function AuthShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#070b18] p-4">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="orb left-[-100px] top-[-100px] h-80 w-80 bg-indigo-600/60" />
-        <div className="orb right-[-80px] top-[20%] h-72 w-72 bg-fuchsia-600/40" />
-        <div className="orb bottom-[-120px] left-[35%] h-80 w-80 bg-violet-700/40" />
-        <div
-          className="absolute inset-0 opacity-[0.15]"
-          style={{ backgroundImage: 'radial-gradient(rgba(255,255,255,.35) 1px, transparent 1px)', backgroundSize: '26px 26px' }}
-        />
-      </div>
-      <div className="relative grid w-full max-w-5xl items-stretch gap-5 lg:grid-cols-[1.05fr_1fr]">
-        <Showcase />
-        <div className="animate-enter rounded-3xl border border-white/10 bg-white/[.97] p-7 shadow-2xl backdrop-blur dark:bg-slate-900/[.97] sm:p-8">{children}</div>
+    <div className="grid min-h-screen bg-white lg:grid-cols-2">
+      <Showcase />
+      <div className="relative flex items-center justify-center bg-slate-50 px-4 py-10">
+        <div className="w-full max-w-[400px]">
+          <div className="mb-6 flex items-center gap-2 lg:hidden">
+            {BRAND.logoUrl ? (
+              <img src={BRAND.logoUrl} alt={BRAND.name} className="h-9 w-9 rounded-xl object-cover" />
+            ) : (
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-600 font-black text-white">{BRAND.initial}</div>
+            )}
+            <span className="font-bold text-slate-900">{BRAND.name}</span>
+          </div>
+          {children}
+          <div className="mt-8 flex items-center justify-center gap-4 text-xs text-slate-400">
+            <Link to="/privacy" className="hover:text-slate-600">Privacy</Link>
+            <span>·</span>
+            <Link to="/terms" className="hover:text-slate-600">Terms</Link>
+            <span>·</span>
+            <span className="flex items-center gap-1"><ShieldCheck size={12} /> Secured by Firebase</span>
+          </div>
+        </div>
       </div>
     </div>
+  );
+}
+
+function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block text-[13px] font-semibold text-slate-700">{label}</span>
+      {children}
+      {hint && <span className="mt-1 block text-xs text-slate-400">{hint}</span>}
+    </label>
   );
 }
 
 export default function Login() {
   const { login, demo, setDemo } = useAuth();
   const nav = useNavigate();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(() => localStorage.getItem('pp-login-email') ?? '');
   const [password, setPassword] = useState('');
+  const [remember, setRemember] = useState(() => Boolean(localStorage.getItem('pp-login-email')));
   const [show, setShow] = useState(false);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
@@ -107,7 +140,9 @@ export default function Login() {
     setErr('');
     setBusy(true);
     try {
-      await login(email, password);
+      await login(email.trim(), password);
+      if (remember) localStorage.setItem('pp-login-email', email.trim());
+      else localStorage.removeItem('pp-login-email');
       nav('/');
     } catch (e: any) {
       setErr(e.message);
@@ -118,42 +153,43 @@ export default function Login() {
 
   return (
     <AuthShell>
-      <div className="flex items-center gap-2 lg:hidden">
-        {BRAND.logoUrl ? (
-          <img src={BRAND.logoUrl} alt={BRAND.name} className="h-9 w-9 rounded-xl object-cover" />
-        ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-fuchsia-500 font-black text-white">{BRAND.initial}</div>
-        )}
-        <span className="font-bold">{BRAND.name}</span>
-      </div>
-      <div className="mt-1 text-[22px] font-black tracking-tight">Welcome back 👋</div>
-      <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Sign in to <span className="grad-text font-semibold">{BRAND.name}</span> to manage live workspaces.</p>
-      <form onSubmit={submit} className="mt-5 grid gap-3">
-        <label className="relative block">
-          <Mail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input !pl-10" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-        </label>
-        <label className="relative block">
-          <Lock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input !pl-10 !pr-11" type={show ? 'text' : 'password'} placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
-          <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label={show ? 'Hide password' : 'Show password'}>
-            {show ? <EyeOff size={16} /> : <Eye size={16} />}
-          </button>
-        </label>
-        {err && <div className="animate-pop rounded-xl bg-red-50 p-2.5 text-xs text-red-600 dark:bg-red-950 dark:text-red-300">{err}</div>}
-        <button className="btn-primary justify-center" type="submit" disabled={busy}>
-          {busy ? <><Loader2 size={15} className="animate-spin" /> Signing in…</> : 'Sign in →'}
+      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Sign in</h1>
+      <p className="mt-1 text-sm text-slate-500">Welcome back — manage your workspaces and Pages.</p>
+      <form onSubmit={submit} className="mt-6 grid gap-4">
+        <Field label="Email address">
+          <span className="relative block">
+            <Mail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input className="input !bg-white !pl-10" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+          </span>
+        </Field>
+        <Field label="Password">
+          <span className="relative block">
+            <Lock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input className="input !bg-white !pl-10 !pr-11" type={show ? 'text' : 'password'} placeholder="Enter your password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+            <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label={show ? 'Hide password' : 'Show password'}>
+              {show ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
+          </span>
+        </Field>
+        <div className="flex items-center justify-between text-[13px]">
+          <label className="flex cursor-pointer items-center gap-2 text-slate-600">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} className="h-4 w-4 rounded accent-indigo-600" />
+            Remember me
+          </label>
+          <Link to="/reset" className="font-semibold text-indigo-600 hover:underline">Forgot password?</Link>
+        </div>
+        {err && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-700">{err}</div>}
+        <button className="btn-primary w-full !py-3" type="submit" disabled={busy}>
+          {busy ? <><Loader2 size={15} className="animate-spin" /> Signing in…</> : 'Sign in'}
         </button>
       </form>
-      <div className="mt-4 flex justify-between text-xs">
-        <Link to="/register" className="font-semibold text-indigo-600 hover:underline">Create account</Link>
-        <Link to="/reset" className="text-slate-500 hover:underline dark:text-slate-400">Forgot password?</Link>
-      </div>
-      <div className="my-4 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-slate-400"><span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" /> or <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" /></div>
-      <button className="btn-ghost w-full justify-center text-xs" onClick={() => { setDemo(!demo); nav('/'); }}>
-        ✨ {demo ? 'Exit demo preview' : 'Continue in demo mode'}
+      <div className="my-5 flex items-center gap-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400"><span className="h-px flex-1 bg-slate-200" /> or <span className="h-px flex-1 bg-slate-200" /></div>
+      <button className="btn-ghost w-full !border-slate-300 !bg-white text-[13px]" onClick={() => { setDemo(!demo); nav('/'); }}>
+        {demo ? 'Exit demo preview' : 'Explore the live demo'}
       </button>
-      <p className="mt-4 text-center text-[11px] text-slate-400">Protected by Firebase Auth · Encrypted Page tokens · You own your data</p>
+      <p className="mt-5 text-center text-[13px] text-slate-500">
+        New here? <Link to="/register" className="font-semibold text-indigo-600 hover:underline">Create an account</Link>
+      </p>
     </AuthShell>
   );
 }
@@ -164,18 +200,17 @@ export function Register() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [show, setShow] = useState(false);
   const [err, setErr] = useState('');
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
 
   return (
     <AuthShell>
-      <div className="text-[22px] font-black tracking-tight">Create your account 🚀</div>
-      <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Super-admin approval-er por full client panel unlock hobe.</p>
+      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Create account</h1>
+      <p className="mt-1 text-sm text-slate-500">Approval-er por full client panel unlock hobe.</p>
       {done ? (
-        <div className="animate-pop mt-5 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
-          Account created! Approval pending — approve hole Pages, Bot o workspace full use korte parbe. Ekhon limited view te dashboard dekhte paro.
+        <div className="mt-6 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900">
+          <span className="font-bold">Account created.</span> Approval pending — approve hole Pages, Bot o workspace full use korte parbe.
           <button className="btn-primary mt-3 w-full justify-center" onClick={() => nav('/')}>Go to dashboard →</button>
         </div>
       ) : (
@@ -193,27 +228,35 @@ export function Register() {
               setBusy(false);
             }
           }}
-          className="mt-5 grid gap-3"
+          className="mt-6 grid gap-4"
         >
-          <input className="input" placeholder="Your name (e.g. Rahim Uddin)" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
-          <label className="relative block">
-            <Mail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input className="input !pl-10" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-          </label>
-          <label className="relative block">
-            <Lock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input className="input !pl-10 !pr-11" type={show ? 'text' : 'password'} placeholder="Password (6+ chars)" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
-            <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600" aria-label={show ? 'Hide password' : 'Show password'}>
-              {show ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
-          </label>
-          {err && <div className="animate-pop rounded-xl bg-red-50 p-2.5 text-xs text-red-600 dark:bg-red-950 dark:text-red-300">{err}</div>}
-          <button className="btn-primary justify-center" type="submit" disabled={busy}>
-            {busy ? <><Loader2 size={15} className="animate-spin" /> Creating…</> : 'Register'}
+          <Field label="Full name">
+            <span className="relative block">
+              <User size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input className="input !bg-white !pl-10" placeholder="Rahim Uddin" value={name} onChange={(e) => setName(e.target.value)} autoComplete="name" />
+            </span>
+          </Field>
+          <Field label="Work email">
+            <span className="relative block">
+              <Mail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input className="input !bg-white !pl-10" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+            </span>
+          </Field>
+          <Field label="Password" hint="Minimum 6 characters.">
+            <span className="relative block">
+              <Lock size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input className="input !bg-white !pl-10" type="password" placeholder="Create a password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
+            </span>
+          </Field>
+          {err && <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-[13px] text-red-700">{err}</div>}
+          <button className="btn-primary w-full !py-3" type="submit" disabled={busy}>
+            {busy ? <><Loader2 size={15} className="animate-spin" /> Creating…</> : 'Create account'}
           </button>
         </form>
       )}
-      <Link to="/login" className="mt-4 block text-center text-xs font-semibold text-indigo-600 hover:underline">Back to sign in</Link>
+      <p className="mt-5 text-center text-[13px] text-slate-500">
+        <Clock size={12} className="mr-1 inline" /> Approval usually within a few hours · <Link to="/login" className="font-semibold text-indigo-600 hover:underline">Back to sign in</Link>
+      </p>
     </AuthShell>
   );
 }
@@ -225,8 +268,8 @@ export function Reset() {
 
   return (
     <AuthShell>
-      <div className="text-[22px] font-black tracking-tight">Reset password</div>
-      <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Mail e reset link pathabo.</p>
+      <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">Reset password</h1>
+      <p className="mt-1 text-sm text-slate-500">Mail e reset link pathabo.</p>
       <form
         onSubmit={async (e) => {
           e.preventDefault();
@@ -237,16 +280,20 @@ export function Reset() {
             setMsg(e.message);
           }
         }}
-        className="mt-5 grid gap-3"
+        className="mt-6 grid gap-4"
       >
-        <label className="relative block">
-          <Mail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input className="input !pl-10" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
-        </label>
-        <button className="btn-primary justify-center" type="submit">Send reset link</button>
+        <Field label="Email address">
+          <span className="relative block">
+            <Mail size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input className="input !bg-white !pl-10" placeholder="you@company.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" />
+          </span>
+        </Field>
+        <button className="btn-primary w-full !py-3" type="submit">Send reset link</button>
       </form>
-      {msg && <div className="mt-2 text-xs">{msg}</div>}
-      <Link to="/login" className="mt-4 block text-center text-xs font-semibold text-indigo-600 hover:underline">Back to sign in</Link>
+      {msg && <div className="mt-3 text-[13px] text-slate-600">{msg}</div>}
+      <p className="mt-5 text-center text-[13px] text-slate-500">
+        <Link to="/login" className="font-semibold text-indigo-600 hover:underline">Back to sign in</Link>
+      </p>
     </AuthShell>
   );
 }
