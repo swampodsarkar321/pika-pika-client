@@ -9,6 +9,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { BRAND } from '../lib/brand';
 import { API_URL, api } from '../lib/api';
 import CommandPalette from './CommandPalette';
+import PageLoader from './PageLoader';
 
 export function NotifyBell() {
   const { token, demo } = useAuth();
@@ -218,6 +219,7 @@ export function Layout({ children }: { children: ReactNode }) {
           </div>
         </header>
         <CommandPalette open={palette} setOpen={setPalette} />
+        <PageLoader />
         <div className="flex">
           <aside className="sticky top-[57px] hidden h-[calc(100vh-57px)] w-[260px] shrink-0 border-r border-white/60 bg-white/70 p-1 backdrop-blur-xl lg:block dark:border-slate-800 dark:bg-slate-900/70">
             <Sidebar />

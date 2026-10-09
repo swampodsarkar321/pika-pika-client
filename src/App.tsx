@@ -17,6 +17,7 @@ import Broadcast from './pages/Broadcast';
 import Admin from './admin/AdminPanel';
 import Login, { Register, Reset } from './pages/Auth';
 import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import type { JSX } from 'react';
 
 function Guard({ children }: { children: JSX.Element }) {
@@ -33,6 +34,7 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/reset" element={<Reset />} />
       <Route path="/privacy" element={<Privacy />} />
+      <Route path="/terms" element={<Terms />} />
       <Route
         path="/*"
         element={
