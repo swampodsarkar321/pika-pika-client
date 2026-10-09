@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Crown, Building2, Power, KeyRound, BadgeCheck, XCircle, ShieldAlert, UserCheck, Users, LayoutDashboard, Wallet, Search } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { api } from '../lib/api';
+import { api, API_URL } from '../lib/api';
 import { PageHead, Loading } from '../components/Layout';
 import DonutChart from '../components/DonutChart';
 
@@ -16,6 +16,7 @@ export default function Admin() {
   const [plans, setPlans] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
+  const [backend, setBackend] = useState<{ ok: boolean; ms: number } | null>(null);
   const [userFilter, setUserFilter] = useState('pending');
   const [clientQuery, setClientQuery] = useState('');
   const [msg, setMsg] = useState('');
@@ -39,6 +40,13 @@ export default function Admin() {
       setPlans(w.plans ?? []);
       setClaims(c.claims ?? []);
       setUsers(u.users ?? []);
+      try {
+        const t0 = performance.now();
+        const hr = await fetch(`${API_URL}/health`);
+        setBackend({ ok: hr.ok, ms: Math.round(performance.now() - t0) });
+      } catch {
+        setBackend({ ok: false, ms: -1 });
+      }
     } catch (e: any) {
       setAllowed(false);
       setMsg(e.message);
@@ -141,6 +149,10 @@ export default function Admin() {
       <div key={tab} className="animate-enter">
         {tab === 'overview' && (
           <div className="space-y-4">
+            <div className={`flex items-center gap-2 rounded-2xl border p-3 text-sm ${backend?.ok ? 'border-emerald-300/60 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-red-300/60 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200'}`}>
+              <span className={`h-2.5 w-2.5 rounded-full ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
+              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · auto keep-alive active (ping / 5 min)</span></> : <><b>Backend down / sleeping</b><span className="text-xs opacity-80">· prothom request e 30-60s lagte pare</span></>) : 'Checking backend…'}
+            </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               {stats.map((s) => (
                 <div key={s.label} className="card overflow-hidden p-0">
