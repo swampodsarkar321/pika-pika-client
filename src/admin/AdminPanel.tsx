@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Crown, Building2, Power, KeyRound, BadgeCheck, XCircle, ShieldAlert } from 'lucide-react';
+import { Crown, Building2, Power, KeyRound, BadgeCheck, XCircle, ShieldAlert, UserCheck, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../lib/api';
 import { PageHead, Loading } from '../components/Layout';
@@ -12,6 +12,8 @@ export default function Admin() {
   const [wss, setWss] = useState<any[]>([]);
   const [plans, setPlans] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
+  const [users, setUsers] = useState<any[]>([]);
+  const [userFilter, setUserFilter] = useState('pending');
   const [msg, setMsg] = useState('');
   const [keyFor, setKeyFor] = useState<string | null>(null);
   const [keyVal, setKeyVal] = useState('');
@@ -24,15 +26,17 @@ export default function Admin() {
     try {
       await api('/api/admin/me', { token });
       setAllowed(true);
-      const [o, w, c] = await Promise.all([
+      const [o, w, c, u] = await Promise.all([
         api<any>('/api/admin/overview', { token }),
         api<any>('/api/admin/workspaces', { token }),
         api<any>('/api/admin/claims?status=pending', { token }),
+        api<any>('/api/admin/users?status=all', { token }).catch(() => ({ users: [] })),
       ]);
       setOv(o);
       setWss(w.workspaces ?? []);
       setPlans(w.plans ?? []);
       setClaims(c.claims ?? []);
+      setUsers(u.users ?? []);
     } catch (e: any) {
       setAllowed(false);
       setMsg(e.message);
@@ -61,6 +65,21 @@ export default function Admin() {
     }
   }
 
+  async function approveUser(uid: string, approved: boolean) {
+    if (!token) return;
+    setMsg('');
+    try {
+      await api(`/api/admin/users/${uid}/approval`, { method: 'PATCH', token, body: { approved } });
+      setMsg(approved ? '✅ User approved — full client panel unlocked' : '⏸️ Approval revoked — limited view only');
+      load();
+    } catch (e: any) {
+      setMsg(`⚠️ ${e.message}`);
+    }
+  }
+
+  const pendingUsers = users.filter((u: any) => !u.approved);
+  const shownUsers = userFilter === 'pending' ? pendingUsers : userFilter === 'approved' ? users.filter((u: any) => u.approved) : users;
+
   if (demo) return (<div><PageHead title="Super Admin" /><div className="card p-8 text-center text-sm text-slate-500">The admin panel is hidden in demo mode. Sign in to continue.</div></div>);
   if (allowed === null) return <Loading label="admin check" />;
   if (!allowed) return (<div><PageHead title="Super Admin" /><div className="card flex items-center gap-2 border-red-200 bg-red-50 p-6 text-sm text-red-700"><ShieldAlert size={18} /> Super-admin only. {msg}</div></div>);
@@ -69,8 +88,39 @@ export default function Admin() {
 
   return (
     <div>
-      <PageHead title="Super Admin" sub="S seller control room — plans, keys, claims, suspend" />
+      <PageHead title="Super Admin" sub="Seller control room — approvals, plans, keys, claims, suspend" />
       {msg && <div className="card mb-3 p-3 text-sm">{msg}</div>}
+
+      <div className="card mb-4 p-5">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="flex items-center gap-2 text-sm font-semibold"><Users size={16} /> Client approvals</span>
+          <span className="badge bg-amber-100 text-amber-800">pending: {pendingUsers.length}</span>
+          <span className="ml-auto flex gap-1.5">
+            {['pending', 'approved', 'all'].map((f) => (
+              <button key={f} onClick={() => setUserFilter(f)} className={`rounded-lg px-2.5 py-1 text-xs font-semibold ${userFilter === f ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300'}`}>{f}</button>
+            ))}
+          </span>
+        </div>
+        <div className="mt-3 space-y-2">
+          {shownUsers.map((u: any) => (
+            <div key={u.uid} className={`flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2 text-xs ${u.approved ? 'border-slate-100 dark:border-slate-800' : 'border-amber-200 bg-amber-50/60 dark:border-amber-900 dark:bg-amber-950/20'}`}>
+              <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-500 font-bold text-white">{(u.displayName ?? u.email ?? '?').slice(0, 1).toUpperCase()}</span>
+              <span className="font-semibold">{u.displayName ?? '(no name)'}</span>
+              <span className="text-slate-500">{u.email ?? u.uid}</span>
+              {!u.approved && <span className="badge bg-amber-500 text-white">pending</span>}
+              {u.approved && <span className="badge bg-emerald-100 text-emerald-800">approved</span>}
+              <span className="ml-auto flex gap-1.5">
+                {!u.approved ? (
+                  <button className="btn-primary !py-1 text-[11px]" onClick={() => approveUser(u.uid, true)}><UserCheck size={13} /> Approve</button>
+                ) : (
+                  <button className="btn-ghost !py-1 text-[11px]" onClick={() => approveUser(u.uid, false)}>Revoke</button>
+                )}
+              </span>
+            </div>
+          ))}
+          {!shownUsers.length && <div className="text-xs text-slate-500">Kono user nai ei filter e.</div>}
+        </div>
+      </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         {[
@@ -111,6 +161,10 @@ export default function Admin() {
                 <div className="flex flex-wrap items-center gap-2">
                   <Crown size={15} className="text-amber-500" />
                   <span className="text-sm font-semibold">{w.businessName ?? w.name ?? w.id}</span>
+                  {(w.ownerName || w.ownerEmail) && (
+                    <span className="text-xs text-slate-500">by {w.ownerName ?? w.ownerEmail}{w.ownerEmail && w.ownerName ? ` (${w.ownerEmail})` : ''}</span>
+                  )}
+                  {w.ownerApproved === false && <span className="badge bg-amber-500 text-white">owner pending</span>}
                   {w.suspended && <span className="badge bg-red-500 text-white">suspended</span>}
                   <span className="badge bg-slate-100 text-slate-600">{w.plan} · {w.conversations} chats · {w.orders} orders · AI {w.aiThisMonth}</span>
                   {w.hasCustomKey && <span className="badge bg-emerald-100 text-emerald-800">key {w.customKeyMask}</span>}

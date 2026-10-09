@@ -1,7 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, type User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, sendPasswordResetEmail, updateProfile, type User } from 'firebase/auth';
 import { auth, firebaseConfigured, DEMO_DEFAULT } from '../lib/firebase';
-import { API_URL } from '../lib/api';
+import { API_URL, api } from '../lib/api';
+
+export interface UserProfile {
+  displayName: string | null;
+  email: string | null;
+  approved: boolean;
+  createdAt: number | null;
+}
 
 interface AuthCtx {
   user: User | null;
@@ -9,8 +16,12 @@ interface AuthCtx {
   loading: boolean;
   demo: boolean;
   setDemo: (v: boolean) => void;
+  profile: UserProfile | null;
+  approved: boolean;
+  isAdmin: boolean;
+  refreshProfile: () => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   reset: (email: string) => Promise<void>;
 }
@@ -23,6 +34,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [demo, setDemo] = useState<boolean>(!firebaseConfigured || DEMO_DEFAULT);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  async function fetchProfile(t: string) {
+    try {
+      const r = await api<any>('/api/me', { token: t });
+      const p = r.profile ?? null;
+      setProfile(p ? {
+        displayName: p.displayName ?? null,
+        email: p.email ?? null,
+        approved: p.approved !== false,
+        createdAt: p.createdAt ?? null,
+      } : null);
+      setIsAdmin(Boolean(r.isAdmin));
+    } catch {
+      /* offline / backend down — keep previous profile */
+    }
+  }
+
+  async function refreshProfile() {
+    if (demo || !token) return;
+    await fetchProfile(token);
+  }
 
   useEffect(() => {
     if (!auth) {
@@ -31,8 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     const unsub = onAuthStateChanged(auth, async (u) => {
       setUser(u);
-      setToken(u ? await u.getIdToken() : null);
-      if (u) setDemo(false);
+      const t = u ? await u.getIdToken() : null;
+      setToken(t);
+      if (u) {
+        setDemo(false);
+        if (t) await fetchProfile(t);
+      } else {
+        setProfile(null);
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
     return unsub;
@@ -83,25 +124,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       loading,
       demo,
       setDemo,
+      profile,
+      approved: demo ? true : (profile?.approved !== false),
+      isAdmin,
+      refreshProfile,
       async login(email, password) {
         if (!auth) throw new Error('Firebase is not configured — stay in demo mode or add VITE_FIREBASE_* keys.');
         await signInWithEmailAndPassword(auth, email, password);
       },
-      async register(email, password) {
+      async register(name, email, password) {
         if (!auth) throw new Error('Firebase is not configured.');
-        await createUserWithEmailAndPassword(auth, email, password);
+        const clean = name.trim();
+        if (clean.length < 2) throw new Error('Please enter your name (2+ characters).');
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        try {
+          await updateProfile(cred.user, { displayName: clean });
+        } catch {
+          /* non-fatal — server profile is the source of truth */
+        }
+        try {
+          const t = await cred.user.getIdToken();
+          await api('/api/me/profile', { method: 'POST', token: t, body: { displayName: clean } });
+        } catch {
+          /* profile sync retry happens on next /api/me fetch */
+        }
       },
       async logout() {
         if (auth) await signOut(auth);
         setUser(null);
         setToken(null);
+        setProfile(null);
+        setIsAdmin(false);
       },
       async reset(email) {
         if (!auth) throw new Error('Firebase is not configured.');
         await sendPasswordResetEmail(auth, email);
       },
     }),
-    [user, token, loading, demo],
+    [user, token, loading, demo, profile, isAdmin],
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

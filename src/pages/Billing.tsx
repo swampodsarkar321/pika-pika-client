@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Check, Phone, BadgeCheck } from 'lucide-react';
+import { Check, Phone, BadgeCheck, Crown } from 'lucide-react';
 import { PageHead } from '../components/Layout';
 import { BRAND } from '../lib/brand';
 import { useAuth } from '../contexts/AuthContext';
@@ -46,14 +46,28 @@ export default function Billing() {
   const [trx, setTrx] = useState('');
   const [sender, setSender] = useState('');
   const [msg, setMsg] = useState('');
+  const [activePkg, setActivePkg] = useState<string | null>(null);
 
   const ws = () => localStorage.getItem('workspaceId') ?? '';
+
+  // planId (server) → package card (UI): free→trial, starter→business, business→premium
+  const planToPkg = (planId?: string) =>
+    planId === 'business' ? 'premium' : planId === 'starter' ? 'business' : 'trial';
 
   async function load() {
     if (demo || !token) return;
     try {
       const r = await api<any>(`/api/billing/claims?workspaceId=${ws()}`, { token });
       setClaims(r.claims ?? []);
+    } catch {
+      /* ignore */
+    }
+    try {
+      const w = ws();
+      if (w) {
+        const wr = await api<any>(`/api/workspaces/${w}?workspaceId=${w}`, { token });
+        setActivePkg(planToPkg(wr.workspace?.planId));
+      }
     } catch {
       /* ignore */
     }
@@ -81,9 +95,19 @@ export default function Billing() {
   return (
     <div>
       <PageHead title="Billing" sub={`${BRAND.name} packages — order on WhatsApp`} />
+      {!demo && activePkg && (
+        <div className="mb-3 flex items-center gap-2 rounded-2xl border border-emerald-300/60 bg-emerald-50 p-3 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+          <Crown size={16} className="shrink-0 text-emerald-600" />
+          <span>Active plan: <b>{PLANS.find((p) => p.id === activePkg)?.name ?? activePkg}</b> — nicher list e sudhu ei plan er benefit active.</span>
+        </div>
+      )}
       <div className="grid gap-3 md:grid-cols-3">
-        {PLANS.map((p) => (
-          <div key={p.id} className={`card p-5 ${p.highlight ? 'border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-900' : ''}`}>
+        {PLANS.map((p) => {
+          const active = activePkg === p.id;
+          const dimmed = activePkg !== null && !active;
+          return (
+          <div key={p.id} className={`card relative p-5 ${active ? 'border-emerald-500 ring-2 ring-emerald-200 dark:ring-emerald-900' : p.highlight ? 'border-indigo-500 ring-2 ring-indigo-100 dark:ring-indigo-900' : ''} ${dimmed ? 'opacity-70' : ''}`}>
+            {active && <span className="badge absolute right-4 top-4 bg-emerald-500 text-white">Active</span>}
             <div className="font-semibold">{p.name}</div>
             <div className="mt-1 text-2xl font-bold">{p.price} <span className="text-sm font-normal text-slate-500">{p.period}</span></div>
             <div className="mt-1 text-xs text-slate-500">{p.note}</div>
@@ -94,7 +118,8 @@ export default function Billing() {
               <Phone size={14} /> {p.cta} on WhatsApp
             </a>
           </div>
-        ))}
+          );
+        })}
       </div>
       <div className="card mt-3 p-4 text-xs text-slate-500">
         The bot never stops when quota runs out — it sends a fallback message instead. Upgrades apply instantly after verification.

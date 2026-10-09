@@ -3,7 +3,7 @@ import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Facebook, Inbox, GraduationCap, Settings, Users, BarChart3,
   ShieldCheck, CreditCard, UserCog, Moon, Sun, Menu, X, FlaskConical, LogOut, Bell,
-  ShoppingBag, Megaphone, Crown, Search,
+  ShoppingBag, Megaphone, Crown, Search, Zap, Package, Clock,
 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { BRAND } from '../lib/brand';
@@ -113,6 +113,56 @@ const navGroups = [
     ],
   },
 ];
+
+export function PlanBadge() {
+  const { token, demo } = useAuth();
+  const [plan, setPlan] = useState<string | null>(null);
+  const ws = typeof window !== 'undefined' ? localStorage.getItem('workspaceId') : null;
+
+  useEffect(() => {
+    if (demo || !token || !ws) {
+      setPlan(null);
+      return;
+    }
+    let alive = true;
+    (async () => {
+      try {
+        const r = await api<any>(`/api/workspaces/${ws}?workspaceId=${ws}`, { token });
+        if (alive) setPlan(r.workspace?.planId ?? 'free');
+      } catch {
+        if (alive) setPlan(null);
+      }
+    })();
+    return () => { alive = false; };
+  }, [demo, token, ws]);
+
+  if (!plan) return null;
+  const meta =
+    plan === 'business'
+      ? { label: 'Business', icon: Crown, cls: 'bg-violet-100 text-violet-800 dark:bg-violet-900/40 dark:text-violet-200' }
+      : plan === 'starter'
+        ? { label: 'Starter', icon: Zap, cls: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/40 dark:text-indigo-200' }
+        : { label: 'Free', icon: Package, cls: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300' };
+  return (
+    <span className={`badge ${meta.cls}`} title={`Active plan: ${meta.label}`}>
+      <meta.icon size={13} /> {meta.label}
+    </span>
+  );
+}
+
+export function PendingBanner() {
+  const { demo, user, approved, profile } = useAuth();
+  if (demo || !user || approved) return null;
+  return (
+    <div className="mb-4 flex items-start gap-2.5 rounded-2xl border border-amber-300/60 bg-amber-50 p-3.5 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
+      <Clock size={17} className="mt-0.5 shrink-0" />
+      <div>
+        <div className="font-bold">Account pending approval{profile?.displayName ? ` — ${profile.displayName}` : ''}</div>
+        <div className="mt-0.5 text-xs opacity-90">Super-admin approve korle workspace create, Pages connect o Bot full unlock hobe. Ekhon dashboard limited view te dekhte paro.</div>
+      </div>
+    </div>
+  );
+}
 
 export function ModeBadge() {
   const { demo, setDemo, user } = useAuth();
@@ -230,6 +280,7 @@ export function Layout({ children }: { children: ReactNode }) {
             {open ? <X size={18} /> : <Menu size={18} />}
           </button>
           <ModeBadge />
+          <PlanBadge />
           <button onClick={() => setPalette(true)} className="btn-ghost ml-1 hidden !py-2 text-xs text-slate-400 md:inline-flex">
             <Search size={14} /> Search or command… <kbd className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-bold dark:bg-slate-800">Ctrl K</kbd>
           </button>
@@ -254,7 +305,7 @@ export function Layout({ children }: { children: ReactNode }) {
               </aside>
             </div>
           )}
-          <main key={loc.pathname} className="animate-enter min-w-0 flex-1 p-4 md:p-6">{children}</main>
+          <main key={loc.pathname} className="animate-enter min-w-0 flex-1 p-4 md:p-6"><PendingBanner />{children}</main>
         </div>
       </div>
     </div>

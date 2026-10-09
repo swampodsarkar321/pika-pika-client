@@ -98,34 +98,44 @@ export default function Login() {
 export function Register() {
   const { register } = useAuth();
   const nav = useNavigate();
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [err, setErr] = useState('');
+  const [done, setDone] = useState(false);
 
   return (
-    <div className="mx-auto mt-16 max-w-sm">
-      <div className="card p-6">
-        <div className="text-lg font-semibold">Create your account</div>
+    <AuthShell>
+      <div className="text-xl font-bold">Create your account 🚀</div>
+      <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-400">Super-admin approval-er por full client panel unlock hobe.</p>
+      {done ? (
+        <div className="mt-5 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950 dark:text-emerald-200">
+          Account created! Approval pending — approve hole Pages, Bot o workspace full use korte parbe. Ekhon limited view te dashboard dekhte paro.
+          <button className="btn-primary mt-3 w-full justify-center" onClick={() => nav('/')}>Go to dashboard →</button>
+        </div>
+      ) : (
         <form
           onSubmit={async (e) => {
             e.preventDefault();
+            setErr('');
             try {
-              await register(email, password);
-              nav('/');
+              await register(name, email, password);
+              setDone(true);
             } catch (e: any) {
               setErr(e.message);
             }
           }}
-          className="mt-4 grid gap-2"
+          className="mt-5 grid gap-3"
         >
+          <input className="input" placeholder="Your name (e.g. Rahim Uddin)" value={name} onChange={(e) => setName(e.target.value)} />
           <input className="input" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
           <input className="input" type="password" placeholder="Password (6+ chars)" value={password} onChange={(e) => setPassword(e.target.value)} />
-          {err && <div className="text-xs text-red-600">{err}</div>}
+          {err && <div className="rounded-xl bg-red-50 p-2.5 text-xs text-red-600">{err}</div>}
           <button className="btn-primary justify-center" type="submit">Register</button>
         </form>
-        <Link to="/login" className="mt-3 block text-center text-xs text-indigo-600">Back to sign in</Link>
-      </div>
-    </div>
+      )}
+      <Link to="/login" className="mt-4 block text-center text-xs text-indigo-600">Back to sign in</Link>
+    </AuthShell>
   );
 }
 
