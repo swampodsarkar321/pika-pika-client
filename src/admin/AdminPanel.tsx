@@ -16,13 +16,24 @@ export default function Admin() {
   const [plans, setPlans] = useState<any[]>([]);
   const [claims, setClaims] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
-  const [backend, setBackend] = useState<{ ok: boolean; ms: number } | null>(null);
+  const [backend, setBackend] = useState<{ ok: boolean; ms: number; at: number } | null>(null);
+  const [now, setNow] = useState(Date.now());
   const [userFilter, setUserFilter] = useState('pending');
   const [clientQuery, setClientQuery] = useState('');
   const [msg, setMsg] = useState('');
   const [keyFor, setKeyFor] = useState<string | null>(null);
   const [keyVal, setKeyVal] = useState('');
   const [keyModel, setKeyModel] = useState('gemini-3.5-flash-lite');
+
+  async function checkBackend() {
+    try {
+      const t0 = performance.now();
+      const hr = await fetch(`${API_URL}/health`);
+      setBackend({ ok: hr.ok, ms: Math.round(performance.now() - t0), at: Date.now() });
+    } catch {
+      setBackend({ ok: false, ms: -1, at: Date.now() });
+    }
+  }
 
   async function load() {
     if (demo || !token) return;
@@ -40,13 +51,7 @@ export default function Admin() {
       setPlans(w.plans ?? []);
       setClaims(c.claims ?? []);
       setUsers(u.users ?? []);
-      try {
-        const t0 = performance.now();
-        const hr = await fetch(`${API_URL}/health`);
-        setBackend({ ok: hr.ok, ms: Math.round(performance.now() - t0) });
-      } catch {
-        setBackend({ ok: false, ms: -1 });
-      }
+      await checkBackend();
     } catch (e: any) {
       setAllowed(false);
       setMsg(e.message);
@@ -59,6 +64,11 @@ export default function Admin() {
       return;
     }
     load();
+    // Realtime backend status — re-ping every 30s while the panel is open
+    const t = setInterval(checkBackend, 30_000);
+    // Tick every 5s so the "checked Xs ago" label stays live
+    const tick = setInterval(() => setNow(Date.now()), 5_000);
+    return () => { clearInterval(t); clearInterval(tick); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [demo, token]);
 
@@ -150,8 +160,11 @@ export default function Admin() {
         {tab === 'overview' && (
           <div className="space-y-4">
             <div className={`flex items-center gap-2 rounded-2xl border p-3 text-sm ${backend?.ok ? 'border-emerald-300/60 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200' : 'border-red-300/60 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950/40 dark:text-red-200'}`}>
-              <span className={`h-2.5 w-2.5 rounded-full ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
-              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · auto keep-alive active (ping / 5 min)</span></> : <><b>Backend down / sleeping</b><span className="text-xs opacity-80">· first request may take 30-60s to wake up</span></>) : 'Checking backend…'}
+              <span className="relative flex h-2.5 w-2.5">
+                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${backend?.ok ? 'bg-emerald-500' : 'bg-red-500'}`} />
+              </span>
+              {backend ? (backend.ok ? <><b>Backend online</b><span className="text-xs opacity-80">· {backend.ms}ms · live · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></> : <><b>Backend down / sleeping</b><span className="text-xs opacity-80">· first request may take 30-60s to wake up · checked {Math.max(0, Math.round((now - backend.at) / 1000))}s ago</span></>) : 'Checking backend…'}
             </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
               {stats.map((s) => (
